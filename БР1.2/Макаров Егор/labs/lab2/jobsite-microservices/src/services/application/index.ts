@@ -10,6 +10,7 @@ import {
 import { HttpError } from '../../common/httpError';
 import { UserRole, ApplicationStatus } from '../../common/enums';
 import { callService } from '../../common/internalClient';
+import { publishEvent } from '../../common/rabbit';
 import { Application } from './entities/Application';
 
 export const dataSource = new DataSource({
@@ -64,6 +65,17 @@ routes.post('/vacancies/:vacancyId/applications', authenticate, seekerOnly, vali
     coverLetter: cover_letter ?? null,
   });
   await apps().save(application);
+
+  // публикуем доменное событие в RabbitMQ (асинхронное межсервисное взаимодействие)
+  await publishEvent('application.created', {
+    application_id: application.id,
+    vacancy_id: application.vacancyId,
+    resume_id: application.resumeId,
+    job_seeker_id: application.jobSeekerId,
+    company_id: application.companyId,
+    created_at: application.createdAt,
+  });
+
   res.status(201).json(present(application));
 }));
 

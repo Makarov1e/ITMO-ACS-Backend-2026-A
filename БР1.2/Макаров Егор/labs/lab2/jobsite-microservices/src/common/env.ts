@@ -25,6 +25,8 @@ export const env = {
 
   internalToken: process.env.INTERNAL_TOKEN || 'internal-secret',
 
+  rabbitmqUrl: process.env.RABBITMQ_URL || 'amqp://localhost:5672',
+
   // адреса других сервисов (для межсервисных вызовов)
   services: {
     auth: process.env.AUTH_URL || 'http://localhost:3001',
@@ -33,5 +35,6 @@ export const env = {
     employer: process.env.EMPLOYER_URL || 'http://localhost:3004',
     vacancy: process.env.VACANCY_URL || 'http://localhost:3005',
     application: process.env.APPLICATION_URL || 'http://localhost:3006',
+    notification: process.env.NOTIFICATION_URL || 'http://localhost:3007',
   },
 };
