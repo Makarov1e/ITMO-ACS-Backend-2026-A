@@ -17,6 +17,21 @@ services:
       timeout: 5s
       retries: 10
 
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: ms-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: jobsite
+      RABBITMQ_DEFAULT_PASS: jobsite
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
   # ---- общие переменные окружения через якорь ----
   auth:
     build: .
@@ -36,6 +51,8 @@ services:
         EMPLOYER_URL: http://employer:3004
         VACANCY_URL: http://vacancy:3005
         APPLICATION_URL: http://application:3006
+        NOTIFICATION_URL: http://notification:3007
+        RABBITMQ_URL: amqp://jobsite:jobsite@rabbitmq:5672
       SERVICE: auth
       PORT: 3001
       DB_NAME: auth_db
@@ -96,7 +113,20 @@ services:
       DB_NAME: application_db
     depends_on:
       postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
     ports: ["3006:3006"]
+
+  notification:
+    image: jobsite-ms
+    environment:
+      <<: *svc-env
+      SERVICE: notification
+      PORT: 3007
+      DB_NAME: notification_db
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    ports: ["3007:3007"]
 
   gateway:
     image: jobsite-ms
@@ -111,6 +141,7 @@ services:
       - employer
       - vacancy
       - application
+      - notification
     ports: ["3000:3000"]
 
 volumes:

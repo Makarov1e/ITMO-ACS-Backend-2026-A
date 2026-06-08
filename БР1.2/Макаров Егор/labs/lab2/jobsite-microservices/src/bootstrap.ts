@@ -7,6 +7,7 @@ interface ServiceModule {
   app: Express;
   dataSource: DataSource;
   seed?: () => Promise<void>;
+  onReady?: () => Promise<void>;
 }
 
 const start = async (): Promise<void> => {
@@ -30,6 +31,7 @@ const start = async (): Promise<void> => {
     employer: () => import('./services/employer'),
     vacancy: () => import('./services/vacancy'),
     application: () => import('./services/application'),
+    notification: () => import('./services/notification'),
   };
 
   const loader = modules[name];
@@ -44,6 +46,10 @@ const start = async (): Promise<void> => {
     await mod.seed();
     // eslint-disable-next-line no-console
     console.log(`[${name}] справочники наполнены`);
+  }
+
+  if (mod.onReady) {
+    await mod.onReady();
   }
 
   mod.app.listen(env.port, () => {

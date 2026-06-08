@@ -14,9 +14,21 @@
 | **employer** | 3004 | employer_db | Профиль работодателя, компании |
 | **vacancy** | 3005 | vacancy_db | Вакансии, навыки вакансий, избранное |
 | **application** | 3006 | application_db | Отклики на вакансии |
+| **notification** | 3007 | notification_db | Уведомления (consumer RabbitMQ) |
 
 Каждый сервис владеет собственной БД; данные других сервисов запрашиваются через
 их внутренний API (`/internal`, защищён заголовком `X-Internal-Token`).
+
+## Асинхронные события (RabbitMQ, ДЗ5)
+
+Помимо синхронных вызовов реализовано событийное взаимодействие через RabbitMQ
+(topic exchange `jobsite.events`):
+
+- **application** при создании отклика публикует событие `application.created`;
+- **notification** подписан на это событие, сохраняет уведомление для компании и
+  отдаёт его работодателю по `GET /api/v1/notifications`.
+
+Панель управления RabbitMQ: `http://localhost:15672` (jobsite / jobsite).
 
 ## Архитектура кода
 

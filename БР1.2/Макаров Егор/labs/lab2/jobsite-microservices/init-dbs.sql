@@ -5,3 +5,4 @@ CREATE DATABASE seeker_db;
 CREATE DATABASE employer_db;
 CREATE DATABASE vacancy_db;
 CREATE DATABASE application_db;
+CREATE DATABASE notification_db;

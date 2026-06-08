@@ -17,6 +17,7 @@ const pickTarget = (url: string): string | null => {
     || url.startsWith('/work-experiences') || url.startsWith('/educations')
   ) return env.services.seeker;
   if (url.startsWith('/employer') || url.startsWith('/companies')) return env.services.employer;
+  if (url.startsWith('/notifications')) return env.services.notification;
   if (url.startsWith('/applications')) return env.services.application;
   if (/^\/vacancies\/\d+\/applications/.test(url)) return env.services.application;
   if (url.startsWith('/vacancies')) return env.services.vacancy;
