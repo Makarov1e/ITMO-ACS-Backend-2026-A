@@ -29,13 +29,18 @@ app.use(cors());
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'gateway' }));
 
+// если для пути нет сервиса — аккуратный 404 (а не падение прокси)
+app.use('/api/v1', (req, res, next) => {
+  if (!pickTarget(req.url || '')) {
+    res.status(404).json({ code: 'NOT_FOUND', message: `Эндпоинт ${req.originalUrl} не найден` });
+    return;
+  }
+  next();
+});
+
 app.use('/api/v1', createProxyMiddleware({
   changeOrigin: true,
-  router: (req) => {
-    const target = pickTarget(req.url || '');
-    if (!target) throw new Error(`Не найден сервис для пути ${req.url}`);
-    return target;
-  },
+  router: (req) => pickTarget(req.url || '') as string,
   on: {
     error: (_err, _req, res) => {
       // res может быть http.ServerResponse
