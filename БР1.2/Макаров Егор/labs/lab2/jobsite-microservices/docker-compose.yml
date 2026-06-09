@@ -16,6 +16,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks: [jobsite-net]
 
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
@@ -31,11 +32,13 @@ services:
       interval: 5s
       timeout: 5s
       retries: 15
+    networks: [jobsite-net]
 
   # ---- общие переменные окружения через якорь ----
   auth:
-    build: .
-    image: jobsite-ms
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.auth
     environment:
       <<: &svc-env
         DB_HOST: postgres
@@ -53,87 +56,92 @@ services:
         APPLICATION_URL: http://application:3006
         NOTIFICATION_URL: http://notification:3007
         RABBITMQ_URL: amqp://jobsite:jobsite@rabbitmq:5672
-      SERVICE: auth
-      PORT: 3001
       DB_NAME: auth_db
     depends_on:
       postgres: { condition: service_healthy }
     ports: ["3001:3001"]
+    networks: [jobsite-net]
 
   catalog:
-    image: jobsite-ms
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.catalog
     environment:
       <<: *svc-env
-      SERVICE: catalog
-      PORT: 3002
       DB_NAME: catalog_db
     depends_on:
       postgres: { condition: service_healthy }
     ports: ["3002:3002"]
+    networks: [jobsite-net]
 
   seeker:
-    image: jobsite-ms
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.seeker
     environment:
       <<: *svc-env
-      SERVICE: seeker
-      PORT: 3003
       DB_NAME: seeker_db
     depends_on:
       postgres: { condition: service_healthy }
     ports: ["3003:3003"]
+    networks: [jobsite-net]
 
   employer:
-    image: jobsite-ms
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.employer
     environment:
       <<: *svc-env
-      SERVICE: employer
-      PORT: 3004
       DB_NAME: employer_db
     depends_on:
       postgres: { condition: service_healthy }
     ports: ["3004:3004"]
+    networks: [jobsite-net]
 
   vacancy:
-    image: jobsite-ms
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.vacancy
     environment:
       <<: *svc-env
-      SERVICE: vacancy
-      PORT: 3005
       DB_NAME: vacancy_db
     depends_on:
       postgres: { condition: service_healthy }
     ports: ["3005:3005"]
+    networks: [jobsite-net]
 
   application:
-    image: jobsite-ms
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.application
     environment:
       <<: *svc-env
-      SERVICE: application
-      PORT: 3006
       DB_NAME: application_db
     depends_on:
       postgres: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
     ports: ["3006:3006"]
+    networks: [jobsite-net]
 
   notification:
-    image: jobsite-ms
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.notification
     environment:
       <<: *svc-env
-      SERVICE: notification
-      PORT: 3007
       DB_NAME: notification_db
     depends_on:
       postgres: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
     ports: ["3007:3007"]
+    networks: [jobsite-net]
 
   gateway:
-    image: jobsite-ms
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gateway
     environment:
       <<: *svc-env
-      SERVICE: gateway
-      PORT: 3000
     depends_on:
       - auth
       - catalog
@@ -143,6 +151,11 @@ services:
       - application
       - notification
     ports: ["3000:3000"]
+    networks: [jobsite-net]
 
 volumes:
   ms-pgdata:
+
+networks:
+  jobsite-net:
+    driver: bridge

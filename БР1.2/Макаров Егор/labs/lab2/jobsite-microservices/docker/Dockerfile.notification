@@ -1,3 +1,4 @@
+# Dockerfile сервиса "notification" (порт 3007)
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package*.json ./
@@ -11,5 +12,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --omit=dev
 COPY --from=build /app/dist ./dist
-# SERVICE и PORT задаются через окружение в docker-compose
+ENV SERVICE=notification
+ENV PORT=3007
+EXPOSE 3007
 CMD ["node", "dist/bootstrap.js"]
